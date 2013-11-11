@@ -19,7 +19,7 @@ public class RotatableDrawZone extends RectZone{
 	TouchClient client;
 	Vector<int[]> points;
 	Vector<Vector<int[]>> points2;
-	PImage saveArea;
+	PImage captureArea;
 	String saveDir = "";
 	boolean saving = false;
 	boolean saved = false;
@@ -40,6 +40,9 @@ public class RotatableDrawZone extends RectZone{
 	int brushHeight = 10;
 	int filesCount;
 
+	
+	/** Automatically save the image to the system */
+	boolean autosave = false;
 
 	/**
 	 * RotatableDrawZone constructor, creates a rectangular zone which the user may draw into.
@@ -243,7 +246,7 @@ public class RotatableDrawZone extends RectZone{
 				}
 			} else if (tcur.x > getX() + getWidth()/4 && tcur.y < getY() + rHeight){
 				if(tcur.x < getX() + 2*this.getWidth()/4){
-					save();
+					capture();
 				} else if (tcur.x < getX() + 3*this.getWidth()/4){
 					undo();
 				} else {
@@ -289,19 +292,25 @@ public class RotatableDrawZone extends RectZone{
 		flipped = b;
 	}
 
-	private void save(){
+	private void capture(){
 		//saveArea = applet.get(getX(), getY()+getHeight(), getWidth()*4, getHeight()*5);
 		if (flipped){
 			this.rotate(PConstants.PI);
 			//saveArea = getScreen(getX()+2 , getY()+2, getWidth()-getWidth()/4, getHeight()-rHeight);
 		} 
 		
-		saveArea = getScreen((int)(getX() + getWidth()/4), (int)(getY() + rHeight), (int)(getWidth()-getWidth()/4), (int)(getHeight()-rHeight));
+		captureArea = getScreen((int)(getX() + getWidth()/4), (int)(getY() + rHeight), (int)(getWidth()-getWidth()/4), (int)(getHeight()-rHeight));
 		
 		if (flipped){
 			this.rotate(PConstants.PI);
 		}
 
+		if(autosave){
+			save();
+		}
+	}
+
+	public void save(){
 		boolean flag = false;
 		int i = 0;
 		String path;
@@ -316,11 +325,10 @@ public class RotatableDrawZone extends RectZone{
 			}
 		} while(!flag);
 		filesCount = i;
-		saveArea.save(path);
+		captureArea.save(path);
 		saving = true;
 		saved = true;
 	}
-
 	private void undo(){
 		if(!curve){
 			if(!points.isEmpty()){

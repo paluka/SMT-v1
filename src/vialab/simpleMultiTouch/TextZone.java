@@ -19,7 +19,7 @@ public class TextZone extends RectZone{
 	boolean rounded = false;
 	boolean withinZone = true;
 	boolean highlighted = false;
-	Color highlightColour = new Color(233, 255, 31);
+	Color highlightColour = new Color(233, 255, 31, 255);
 
 	/**
 	 * 
@@ -111,11 +111,13 @@ public class TextZone extends RectZone{
 	public int getYAlign(){
 		return yAlign;
 	}
+	public void setTextColour(int r, int g, int b, int a){
+		tColour = new Color(r, g, b, a);
+	}
+	
 	public void setTextColour(int r, int g, int b){
 		tColour = new Color(r, g, b);
-	}
-
-	
+	}	
 
 	public void setTextColour(Color c){
 		tColour = c;

@@ -23,6 +23,8 @@
  */
 package vialab.simpleMultiTouch;
 
+import java.awt.Color;
+
 import processing.core.PApplet;
 import processing.core.PConstants;
 import processing.core.PImage;
@@ -44,6 +46,8 @@ public class ImageZone extends RectZone {
 	boolean imageArray = false;
 	boolean drawOnlyImg = true;
 	boolean imgRotated = false;
+	boolean disabled = false;
+	Color disabledColor = new Color(210, 210, 210, 155);
 	boolean filter = false;
 	float imgRotateAmount = 0;
 	int imgIndex = 0;
@@ -130,7 +134,7 @@ public class ImageZone extends RectZone {
 		filteredImg.filter(filterType);
 	}
 
-	public void setFilterWithLevel(int pConstant, int numTimes){
+	public void setFilterLvl(int pConstant, int numTimes){
 		this.filterType = pConstant;
 
 		filteredImg = img.get();
@@ -196,6 +200,33 @@ public class ImageZone extends RectZone {
 		return this.imgIndex;
 	}
 
+	public void setDisabled(boolean flag){
+		disabled = flag;
+	}
+	
+	public boolean getDisabled(){
+		return disabled;
+	}
+	
+	/**
+	 * Set the color of the overlay when zone is diabled
+	 * @param r
+	 * @param g
+	 * @param b
+	 * @param a
+	 */
+	public void setDisColor(int r, int g, int b, int a){
+		disabledColor = new Color(r, g, b, a);
+	}
+	
+	/**
+	 * Get the color of the overlay when zone is diabled
+	 * @return
+	 */
+	public Color getDisColor(){
+		return disabledColor;
+	}
+	
 	public void setImgRotateAmount(float radians){
 		this.imgRotateAmount = radians;
 	}
@@ -266,6 +297,11 @@ public class ImageZone extends RectZone {
 				}
 			}
 
+		}
+		
+		if(disabled){
+			TouchClient.parent.fill(disabledColor.getRed(), disabledColor.getGreen(), disabledColor.getBlue(), disabledColor.getAlpha());
+			TouchClient.parent.rect(this.getX(),  this.getY(), this.getWidth(),  this.getHeight());
 		}
 	}
 

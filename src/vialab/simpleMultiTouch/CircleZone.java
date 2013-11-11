@@ -9,8 +9,8 @@ import processing.core.PVector;
 
 public class CircleZone extends Zone {
 	Shape circle;
-	Color colour = new Color(0, 0, 0);
-	Color sColour = new Color(0, 0, 0);
+	Color fillColor = new Color(50, 200, 70);
+	Color sColor = new Color(50, 200, 70);
 	public boolean fill = true;
 	public boolean stroke = true;
 	
@@ -64,19 +64,23 @@ public class CircleZone extends Zone {
 
 	}
 	
-	public void setColour(int r, int g, int b){
-		colour = new Color(r, g, b);
+	public void setFillColor(int r, int g, int b){
+		fillColor = new Color(r, g, b);
 	}
 	
-	public void setColour(Color c){
-		colour = c;
+	public void setFillColor(Color c){
+		fillColor = c;
 	}
 	
-	public Color getColour(){
-		return colour;
+	public Color getFillColor(){
+		return fillColor;
 	}
-	public void setStrokeColour(int r, int g, int b){
-		sColour = new Color(r, g, b);
+	public void setStrokeColor(int r, int g, int b){
+		sColor = new Color(r, g, b);
+	}
+	
+	public void setStrokeColor(Color c){
+		sColor = c;
 	}
 	
 	public void setFill(boolean fill){
@@ -91,13 +95,13 @@ public class CircleZone extends Zone {
 		
 		if(stroke){
 			TouchClient.parent.strokeWeight(1);
-			TouchClient.parent.stroke(sColour.getRed(), sColour.getGreen(), sColour.getBlue());
+			TouchClient.parent.stroke(sColor.getRed(), sColor.getGreen(), sColor.getBlue());
 		} else {
 			TouchClient.parent.noStroke();
 		}
 		
 		if(fill){
-			TouchClient.parent.fill(colour.getRed(), colour.getGreen(), colour.getBlue());
+			TouchClient.parent.fill(fillColor.getRed(), fillColor.getGreen(), fillColor.getBlue());
 		} else {
 			TouchClient.parent.noFill();
 		}
