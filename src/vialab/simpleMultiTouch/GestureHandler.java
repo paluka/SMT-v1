@@ -23,7 +23,6 @@ package vialab.simpleMultiTouch;
 import java.awt.Point;
 import java.awt.geom.Point2D;
 import java.lang.reflect.Method;
-import java.util.ArrayList;
 import java.util.Vector;
 
 import processing.core.PApplet;
@@ -34,6 +33,7 @@ import vialab.simpleMultiTouch.events.RotateEvent;
 import vialab.simpleMultiTouch.events.TapAndHoldEvent;
 import vialab.simpleMultiTouch.events.TapEvent;
 import vialab.simpleMultiTouch.events.VSwipeEvent;
+import vialab.simpleMultiTouch.zones.Zone;
 import TUIO.TuioCursor;
 import TUIO.TuioPoint;
 import TUIO.TuioTime;
@@ -53,10 +53,10 @@ import TUIO.TuioTime;
  */
 public class GestureHandler {
 	/** Processing PApplet */
-	static PApplet parent = TouchClient.parent;
+	static PApplet parent = TouchClient.pApplet;
 
 	/** The Touch Client zone list */
-	static Vector<Zone> zoneList = TouchClient.zoneList;
+	static Vector<Zone> zoneList = TouchClient.getZoneList();
 
 	/** The gesture events that the student may override */
 	protected Method dragEvent, pinchEvent, rotateEvent, vSwipeEvent, hSwipeEvent, tapEvent,
@@ -97,7 +97,7 @@ public class GestureHandler {
 		// ////////////////
 		// Tap Gesture
 		// ////////////////
-		if (zone.tappable && zone.tapDown) {
+		if (zone.getTappable() && zone.getTapDown()) {
 			detectTouchDown(zone, xIn, yIn, cursor);
 		}
 	}
@@ -119,7 +119,7 @@ public class GestureHandler {
 		// ////////////////
 		// Tap Gesture
 		// ////////////////
-		if (zone.tappable && zone.tapUp) {
+		if (zone.getTappable() && zone.getTapUp()) {
 			detectTouchUp(zone, xIn, yIn, cursor);
 		}
 
@@ -146,9 +146,9 @@ public class GestureHandler {
 		// /////////////////////////////////////////////////////////////
 		// Two-finger gesture -- Rotate and Pinch Gesture (Scalable)
 		// ////////////////////////////////////////////////////////////
-		if (zone.currentTouches >= 2) {
-			zone.RNTing = false;
-			for (TuioCursor tcur2 : zone.tuioCursorList) {
+		if (zone.getCurrentTouches() >= 2) {
+			zone.setRNTing(false);
+			for (TuioCursor tcur2 : zone.getTuioCursorList()) {
 				if (tcur2 != null && tcur.getSessionID() != tcur2.getSessionID()) {
 
 					long[] cursors = new long[2];
@@ -156,8 +156,8 @@ public class GestureHandler {
 					cursors[1] = tcur2.getSessionID();
 
 					int[] iLast = new int[2];
-					iLast[0] = tcur2.getPath().lastElement().getScreenX(TouchClient.parent.width);
-					iLast[1] = tcur2.getPath().lastElement().getScreenY(TouchClient.parent.height);
+					iLast[0] = tcur2.getPath().lastElement().getScreenX(TouchClient.pApplet.width);
+					iLast[1] = tcur2.getPath().lastElement().getScreenY(TouchClient.pApplet.height);
 
 					int midX = (xIn + iLast[0]) / 2;
 					int midY = (yIn + iLast[1]) / 2; // Center of pinch and
@@ -169,28 +169,28 @@ public class GestureHandler {
 
 					// Reset the lastLocal values when first starting the
 					// gestures.
-					if (!zone.rotating && !zone.pinching) {
-						zone.lastLocalX = zone.localX;
-						zone.lastLocalY = zone.localY;
-						zone.angle = 0;
+					if (!zone.getRotating() && !zone.getPinching()) {
+						zone.setLastLocalX(zone.getLocalX());
+						zone.setLastLocalY(zone.getLocalY());
+						zone.setAngle(0);
 					}
 					// When the centre point between the fingers moves,
 					// translate that amount
-					if (zone.currentTouches == 2) {
-						fireDragEvent(midX, midY, cursors, zone.localX - zone.lastLocalX,
-								zone.localY - zone.lastLocalY, zone);
+					if (zone.getCurrentTouches() == 2) {
+						fireDragEvent(midX, midY, cursors, zone.getLocalX() - zone.getLastLocalX(),
+								zone.getLocalY() - zone.getLastLocalY(), zone);
 					}
 
 					// ///////////////////
 					// Pinching Gesture
 					// //////////////////
-					if (zone.pinchable || zone.xyPinchable || zone.xPinchable || zone.yPinchable) {
+					if (zone.isPinchable() || zone.isXYPinchable() || zone.isXPinchable() || zone.isYPinchable()) {
 						detectPinch(zone, xIn, yIn, cursors);
 					}
 					// ////////////////
 					// Rotate Gesture
 					// ////////////////
-					if (zone.rotatable) {
+					if (zone.isRotatable()) {
 						detectRotate(zone, xIn, yIn, cursors);
 					}
 					return;
@@ -202,29 +202,29 @@ public class GestureHandler {
 		// RNT Gesture
 		// Drag and X/Y Drag Gesture
 		// ////////////////
-		if (zone.RNTable) {
+		if (zone.isRNTable()) {
 			detectRNT(zone, xIn, yIn, cursor);
 		}
-		else if (zone.draggable || zone.xDraggable || zone.yDraggable) {
+		else if (zone.isDraggable() || zone.isXDraggable() || zone.isYDraggable()) {
 			detectDrag(zone, xIn, yIn, cursor);
 		}
 
 		// ////////////////////////
 		// Horizontal Swipe Gesture
 		// /////////////////////////
-		if (zone.hSwipeable) {
+		if (zone.isHSwipeable()) {
 			detectHSwipe(zone, xIn, yIn, cursor);
 		}
 		// ///////////////////////////
 		// Vertical Swipe Gesture
 		// ///////////////////////////
-		if (zone.vSwipeable) {
+		if (zone.isVSwipeable()) {
 			detectVSwipe(zone, xIn, yIn, cursor);
 		}
 		// //////////////////////////
 		// Tap and Hold Gesture
 		// /////////////////////////
-		if (zone.tapAndHoldable) {
+		if (zone.isTapAndHoldable()) {
 			detectTapAndHold(zone, xIn, yIn, cursor);
 		}
 	}
@@ -244,17 +244,17 @@ public class GestureHandler {
 	 *            involved in the gesture (just 2 cursors in this case)
 	 */
 	private void detectRotate(Zone zone, int xIn, int yIn, long[] cursors) {
-		TuioCursor tcur = TouchClient.tuioClient.getTuioCursor(cursors[1]);
+		TuioCursor tcur = TouchClient.getTuioClient().getTuioCursor(cursors[1]);
 
 		if(tcur != null){
-			if (!zone.rotating) {
-				zone.angle = TouchClient.tuioClient.getTuioCursor(cursors[0]).getAngle(
-						TouchClient.tuioClient.getTuioCursor(cursors[1]));
-				zone.rotating = true;
+			if (!zone.getRotating()) {
+				zone.setAngle(TouchClient.getTuioClient().getTuioCursor(cursors[0]).getAngle(
+						TouchClient.getTuioClient().getTuioCursor(cursors[1])));
+				zone.setRotating(true);
 			}
-			float rotAngle = TouchClient.tuioClient.getTuioCursor(cursors[0]).getAngle(
-					TouchClient.tuioClient.getTuioCursor(cursors[1]))
-					- zone.angle;
+			float rotAngle = TouchClient.getTuioClient().getTuioCursor(cursors[0]).getAngle(
+					TouchClient.getTuioClient().getTuioCursor(cursors[1]))
+					- zone.getAngle();
 
 			// When you first start to rotate zone, it rotates 360 degrees for some
 			// reason.
@@ -266,10 +266,10 @@ public class GestureHandler {
 			// If the current rotation angle is less than the last rotation angle
 			// for the zone, then
 			// rotate the opposite way.
-			if (rotAngle < zone.angle) {
+			if (rotAngle < zone.getAngle()) {
 				rotAngle = -rotAngle;
 			}
-			fireRotateEvent(xIn, yIn, cursors, (int) zone.localX, (int) zone.localY, rotAngle, zone);
+			fireRotateEvent(xIn, yIn, cursors, (int) zone.getLocalX(), (int) zone.getLocalY(), rotAngle, zone);
 		}
 	}
 
@@ -288,7 +288,7 @@ public class GestureHandler {
 	 *            involved in the gesture (just 2 cursors in this case)
 	 */
 	private void detectPinch(Zone zone, int xIn, int yIn, long[] cursors) {
-		TuioCursor tcur = TouchClient.tuioClient.getTuioCursor(cursors[1]);
+		TuioCursor tcur = TouchClient.getTuioClient().getTuioCursor(cursors[1]);
 
 		if(tcur != null){
 			int[] iLast = new int[2];
@@ -301,16 +301,16 @@ public class GestureHandler {
 					* (iLast[1] - yIn));
 
 			// For XYPINCH
-			if (zone.currentTouches == 4 && zone.xyPinchable) {
+			if (zone.getCurrentTouches() == 4 && zone.isXYPinchable()) {
 				int[] z = new int[8];
 				int j = 0;
 				cursors = new long[4];
 				for (int i = 0; i < 4; i++) {
-					cursors[i] = zone.tuioCursorList.get(i).getSessionID();
-					z[j] = zone.tuioCursorList.get(i).getPath().lastElement()
-							.getScreenX(TouchClient.parent.width);
-					z[j + 1] = zone.tuioCursorList.get(i).getPath().lastElement()
-							.getScreenY(TouchClient.parent.height);
+					cursors[i] = zone.getTuioCursorList().get(i).getSessionID();
+					z[j] = zone.getTuioCursorList().get(i).getPath().lastElement()
+							.getScreenX(TouchClient.pApplet.width);
+					z[j + 1] = zone.getTuioCursorList().get(i).getPath().lastElement()
+							.getScreenY(TouchClient.pApplet.height);
 					j += 2;
 				}
 				float dist1x = Math.abs(z[0] - z[2]);
@@ -354,59 +354,59 @@ public class GestureHandler {
 				// space
 
 				// Reset the lastLocal values when first starting the gestures.
-				if (!zone.xyPinching) {
-					zone.lastLocalX = zone.localX;
-					zone.lastLocalY = zone.localY;
-					zone.lastSclDist = sclDist;
-					zone.lastSclYDist = sclYDist;
-					zone.lastSclXDist = sclXDist;
-					zone.xyPinching = true;
+				if (!zone.getXYPinching()) {
+					zone.setLastLocalX(zone.getLocalX());
+					zone.setLastLocalY(zone.getLocalY());
+					zone.setLastSclDist(sclDist);
+					zone.setLastSclYDist(sclYDist);
+					zone.setLastSclXDist(sclXDist);
+					zone.setXYPinching(true);
 				}
 				// When the centre point between the fingers moves, translate that
 				// amount
-				fireDragEvent(midX, midY, cursors, zone.localX - zone.lastLocalX, zone.localY
-						- zone.lastLocalY, zone);
+				fireDragEvent(midX, midY, cursors, zone.getLocalX() - zone.getLastLocalX(), zone.getLocalY()
+						- zone.getLastLocalY(), zone);
 			}
-			if (!zone.pinching) {
-				zone.lastSclDist = sclDist;
-				zone.lastSclYDist = sclYDist;
-				zone.lastSclXDist = sclXDist;
-				zone.pinching = true;
+			if (!zone.getPinching()) {
+				zone.setLastSclDist(sclDist);
+				zone.setLastSclYDist(sclYDist);
+				zone.setLastSclXDist(sclXDist);
+				zone.setPinching(true);
 			}
 
-			float scl = 1.0f - zone.sclSens + zone.sclSens * (sclDist / zone.lastSclDist);// apply
+			float scl = 1.0f - zone.getScaleSens() + zone.getScaleSens() * (sclDist / zone.getLastSclDist());// apply
 			// sensitivity
 
-			float sclX = 1.0f - zone.sclSens + zone.sclSens * (sclXDist / zone.lastSclXDist);// apply
+			float sclX = 1.0f - zone.getScaleSens() + zone.getScaleSens() * (sclXDist / zone.getLastSclXDist());// apply
 			// sensitivity
 
-			float sclY = 1.0f - zone.sclSens + zone.sclSens * (sclYDist / zone.lastSclYDist);// apply
+			float sclY = 1.0f - zone.getScaleSens() + zone.getScaleSens() * (sclYDist / zone.getLastSclYDist());// apply
 			// sensitivity
 
-			zone.lastSclDist = sclDist;
-			zone.lastSclYDist = sclYDist;
-			zone.lastSclXDist = sclXDist;
+			zone.setLastSclDist(sclDist);
+			zone.setLastSclYDist(sclYDist);
+			zone.setLastSclXDist(sclXDist);
 
 			// limit scale gesture
-			if (scl < zone.sclLow) {
-				scl = zone.sclLow;
+			if (scl < zone.getScaleLow()) {
+				scl = zone.getScaleLow();
 			}
-			if (scl > zone.sclHigh) {
-				scl = zone.sclHigh;
+			if (scl > zone.getScaleHigh()) {
+				scl = zone.getScaleHigh();
 			}
-			if (sclX < zone.sclLow) {
-				sclX = zone.sclLow;
+			if (sclX < zone.getScaleLow()) {
+				sclX = zone.getScaleLow();
 			}
-			if (sclX > zone.sclHigh) {
-				sclX = zone.sclHigh;
+			if (sclX > zone.getScaleHigh()) {
+				sclX = zone.getScaleHigh();
 			}
-			if (sclY < zone.sclLow) {
-				sclY = zone.sclLow;
+			if (sclY < zone.getScaleLow()) {
+				sclY = zone.getScaleLow();
 			}
-			if (sclY > zone.sclHigh) {
-				sclY = zone.sclHigh;
+			if (sclY > zone.getScaleHigh()) {
+				sclY = zone.getScaleHigh();
 			}
-			firePinchEvent(xIn, yIn, cursors, scl, sclX, sclY, (int) zone.localX, (int) zone.localY, zone);
+			firePinchEvent(xIn, yIn, cursors, scl, sclX, sclY, (int) zone.getLocalX(), (int) zone.getLocalY(), zone);
 		}
 	}
 
@@ -425,7 +425,7 @@ public class GestureHandler {
 	 *            involved in the gesture (just 1 cursor in this case)
 	 */
 	private void detectHSwipe(Zone zone, int xIn, int yIn, long[] cursor) {
-		TuioCursor t = TouchClient.tuioClient.getTuioCursor(cursor[0]);
+		TuioCursor t = TouchClient.getTuioClient().getTuioCursor(cursor[0]);
 		float xSpeed = t.getXSpeed();
 		float thresholdDistX = (zone.getWidth() / 2);
 		if(zone.getHSwipeDist() != 0){
@@ -461,7 +461,7 @@ public class GestureHandler {
 	 *            involved in the gesture (just 1 cursor in this case)
 	 */
 	private void detectVSwipe(Zone zone, int xIn, int yIn, long[] cursor) {
-		TuioCursor t = TouchClient.tuioClient.getTuioCursor(cursor[0]);
+		TuioCursor t = TouchClient.getTuioClient().getTuioCursor(cursor[0]);
 		float ySpeed = t.getYSpeed();
 		float thresholdDistY = (zone.getHeight() / 2);
 		if(zone.getVSwipeDist() != 0){
@@ -496,26 +496,26 @@ public class GestureHandler {
 	 *            involved in the gesture (just 1 cursor in this case)
 	 */
 	private void detectRNT(Zone zone, int xIn, int yIn, long[] cursor) {
-		if (zone.getId(0) == TouchClient.tuioClient.getTuioCursor(cursor[0]).getSessionID()) {
-			float xDist = zone.localX - zone.lastLocalX;
-			float yDist = zone.localY - zone.lastLocalY;
+		if (zone.getId(0) == TouchClient.getTuioClient().getTuioCursor(cursor[0]).getSessionID()) {
+			float xDist = zone.getLocalX() - zone.getLastLocalX();
+			float yDist = zone.getLocalY() - zone.getLastLocalY();
 			fireDragEvent(xIn, yIn, cursor, xDist, yDist, zone);
-			Point2D positionInZone = new Point2D.Float(zone.localX, zone.localY);
+			Point2D positionInZone = new Point2D.Float(zone.getLocalX(), zone.getLocalY());
 
-			if (positionInZone.distance(zone.x + zone.width / 2, zone.y + zone.height / 2) >= zone.translateAreaRadius) {
-				if (!zone.RNTing) {
-					zone.lastGlobalX = zone.localX;
-					zone.lastGlobalY = zone.localY;
-					zone.angle = getAngleABC(new Point.Float(zone.localX, zone.localY),
-							new Point.Float(zone.x + zone.width / 2, zone.y + zone.height / 2),
-							new Point.Float(zone.lastGlobalX, zone.lastGlobalY));
-					zone.RNTing = true;
+			if (positionInZone.distance(zone.getX() + zone.getWidth() / 2, zone.getY() + zone.getHeight() / 2) >= zone.getTranslateAreaRadius()) {
+				if (!zone.getRNTing()) {
+					zone.setLastGlobalX(zone.getLocalX());
+					zone.setLastGlobalY(zone.getLocalY());
+					zone.setAngle(getAngleABC(new Point.Float(zone.getLocalX(), zone.getLocalY()),
+							new Point.Float(zone.getX() + zone.getWidth() / 2, zone.getY() + zone.getHeight() / 2),
+							new Point.Float(zone.getLastGlobalX(), zone.getLastGlobalY())));
+					zone.setRNTing(true);
 				}
-				float angle = getAngleABC(new Point.Float(zone.localX, zone.localY),
-						new Point.Float(zone.x + zone.width / 2, zone.y + zone.height / 2),
-						new Point.Float(zone.lastGlobalX, zone.lastGlobalY));
-				fireRotateEvent(xIn, yIn, cursor, (int) zone.localX, (int) zone.localY, angle
-						- zone.angle, zone);
+				float angle = getAngleABC(new Point.Float(zone.getLocalX(), zone.getLocalY()),
+						new Point.Float(zone.getX() + zone.getWidth() / 2, zone.getY() + zone.getHeight() / 2),
+						new Point.Float(zone.getLastGlobalX(), zone.getLastGlobalY()));
+				fireRotateEvent(xIn, yIn, cursor, (int) zone.getLocalX(), (int) zone.getLocalY(), angle
+						- zone.getAngle(), zone);
 
 			}
 		}
@@ -536,9 +536,9 @@ public class GestureHandler {
 	 *            involved in the gesture (just 1 cursor in this case)
 	 */
 	private void detectDrag(Zone zone, int xIn, int yIn, long[] cursor) {
-		if (zone.getId(0) == TouchClient.tuioClient.getTuioCursor(cursor[0]).getSessionID()) {
-			float xDist = zone.localX - zone.lastLocalX;
-			float yDist = zone.localY - zone.lastLocalY;
+		if (zone.getId(0) == TouchClient.getTuioClient().getTuioCursor(cursor[0]).getSessionID()) {
+			float xDist = zone.getLocalX() - zone.getLastLocalX();
+			float yDist = zone.getLocalY() - zone.getLastLocalY();
 			fireDragEvent(xIn, yIn, cursor, xDist, yDist, zone);
 		}
 	}
@@ -557,11 +557,11 @@ public class GestureHandler {
 	private void detectTouchDown(Zone zone, int xIn, int yIn, long[] cursor) {
 
 
-		if (zone.lastTouchDown != cursor[0]) {
+		if (zone.getLastTouchDown() != cursor[0]) {
 
 			
 				fireTapEvent(xIn, yIn, cursor, 1, zone);
-				zone.lastTouchDown = cursor[0];
+				zone.setLastTouchDown(cursor[0]);
 				
 
 		}
@@ -580,11 +580,11 @@ public class GestureHandler {
 	 */
 	private void detectTouchUp(Zone zone, int xIn, int yIn, long[] cursor) {
 
-		if (zone.lastTouchUp != cursor[0]) {
+		if (zone.getLastTouchUp() != cursor[0]) {
 
 			fireTapEvent(xIn, yIn, cursor, 1, zone);
 			
-			zone.lastTouchUp = cursor[0];
+			zone.setLastTouchUp(cursor[0]);
 
 
 		}
@@ -605,7 +605,7 @@ public class GestureHandler {
 	 *            involved in the gesture (just 1 cursor in this case)
 	 */
 	private void detectTapAndHold(Zone zone, int xIn, int yIn, long[] cursor) {
-		TuioCursor tcur = TouchClient.tuioClient.getTuioCursor(cursor[0]);
+		TuioCursor tcur = TouchClient.getTuioClient().getTuioCursor(cursor[0]);
 		Vector<TuioPoint> path = tcur.getPath();
 		long time = tcur.getStartTime().getTotalMilliseconds();
 
@@ -650,8 +650,8 @@ public class GestureHandler {
 			// fire event on zones
 			//for (int i = zoneList.size() - 1; i >= 0; i--) {
 			if (/*zoneList.get(i).contains(x, y)
-						&& */(zone.pinchable || zone.xyPinchable
-								|| zone.xPinchable || zone.yPinchable)) {
+						&& */(zone.isPinchable() || zone.isXYPinchable()
+								|| zone.isXPinchable() || zone.isYPinchable())) {
 				zone.pinchEvent(e);
 			}
 			if (e.handled()) {
@@ -694,7 +694,7 @@ public class GestureHandler {
 			// for (int i = zoneList.size()-1; i >= 0; i--) {
 			if (/*
 			 * zone.contains(x, y) &&
-			 */(zone.draggable || zone.xDraggable || zone.yDraggable || zone.RNTable)) {
+			 */(zone.isDraggable() || zone.isXDraggable() || zone.isYDraggable() || zone.isRNTable())) {
 				zone.dragEvent(e);
 			}
 			if (e.handled()) {
@@ -739,7 +739,7 @@ public class GestureHandler {
 			// fire event on zones
 			//for (int i = zoneList.size() - 1; i >= 0; i--) {
 			//Zone zone = zoneList.get(i);
-			if (/*zone.contains(x, y) &&*/ (zone.rotatable || zone.RNTable)) {
+			if (/*zone.contains(x, y) &&*/ (zone.isRotatable() || zone.isRNTable())) {
 				zone.rotateEvent(e);
 			}
 			if (e.handled()) {
@@ -768,7 +768,7 @@ public class GestureHandler {
 	 * 			  int - The type of swipe -> -1 for left swipe, 1 for right swipe
 	 */
 	public void fireHSwipeEvent(int x, int y, long[] cursors, Zone zone, int swipeType) {
-		TuioCursor t = TouchClient.tuioClient.getTuioCursor(cursors[0]);
+		TuioCursor t = TouchClient.getTuioClient().getTuioCursor(cursors[0]);
 		zone.setLastHSwipeCursor(t.getSessionID());
 
 		HSwipeEvent e = new HSwipeEvent(x, y, cursors, swipeType);
@@ -786,7 +786,7 @@ public class GestureHandler {
 			//for (int i = zoneList.size() - 1; i >= 0; i--) {
 			if (/*
 			 * zoneList.get(i).contains(x, y) &&
-			 */zone.hSwipeable) {
+			 */zone.isHSwipeable()) {
 				if(TouchClient.debugMode) {
 					System.out.println("Firing H Swipe: " + zone.toString());
 				}
@@ -819,7 +819,7 @@ public class GestureHandler {
 	 * 			  int - The type of swipe -> -1 for down swipe, 1 for up swipe
 	 */
 	public void fireVSwipeEvent(int x, int y, long[] cursors, Zone zone, int swipeType) {
-		TuioCursor t = TouchClient.tuioClient.getTuioCursor(cursors[0]);
+		TuioCursor t = TouchClient.getTuioClient().getTuioCursor(cursors[0]);
 		zone.setLastVSwipeCursor(t.getSessionID());
 
 		VSwipeEvent e = new VSwipeEvent(x, y, cursors, swipeType);
@@ -837,7 +837,7 @@ public class GestureHandler {
 			//for (int i = zoneList.size() - 1; i >= 0; i--) {
 			if (/*
 			 * zoneList.get(i).contains(x, y) &&
-			 */zone.vSwipeable) {
+			 */zone.isVSwipeable()) {
 				if(TouchClient.debugMode) {
 					System.out.println("Firing V Swipe: " + zone.toString());
 				}
@@ -921,7 +921,7 @@ public class GestureHandler {
 			//for (int i = zoneList.size() - 1; i >= 0; i--) {
 			if (/*
 			 * zoneList.get(i).contains(x, y) &&
-			 */zone.tapAndHoldable) {
+			 */zone.isTapAndHoldable()) {
 				zone.tapAndHoldEvent(e);
 			}
 			if (e.handled()) {

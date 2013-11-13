@@ -6,8 +6,7 @@ import java.util.Collections;
 import java.util.List;
 
 import vialab.simpleMultiTouch.Touch;
-import vialab.simpleMultiTouch.Zone;
-
+import vialab.simpleMultiTouch.zones.Zone;
 import TUIO.TuioCursor;
 
 public abstract class MultiTouchEvent {

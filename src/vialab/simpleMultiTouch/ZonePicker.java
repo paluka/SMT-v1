@@ -3,8 +3,10 @@ package vialab.simpleMultiTouch;
 import java.util.HashMap;
 import java.util.Vector;
 
+import vialab.simpleMultiTouch.zones.Zone;
+
 public class ZonePicker {
-	Vector<Zone> zoneList = TouchClient.zoneList;//new ArrayList<Zone>();
+	private Vector<Zone> zoneList = TouchClient.getZoneList();//new ArrayList<Zone>();
 	
 	private HashMap<Long, Zone> idToZoneMap = new HashMap<Long, Zone>();
 
@@ -15,9 +17,9 @@ public class ZonePicker {
 		
 		if(mapID){
 			// check zones **layers matter--last zone created is on top (wins)
-			for (int i = zoneList.size() - 1; i >= 0; i--) {
-				Zone zone = zoneList.get(i);
-				if (zone != null && zone.active && zone.contains(xScreen, yScreen)) {
+			for (int i = getZoneList().size() - 1; i >= 0; i--) {
+				Zone zone = getZoneList().get(i);
+				if (zone != null && zone.isActive() && zone.contains(xScreen, yScreen)) {
 					idToZoneMap.put(id, zone);
 					t.setZone(zone);
 					return zone;
@@ -65,6 +67,14 @@ public class ZonePicker {
 		//if(idToZoneMap.containsValue(id)){
 			idToZoneMap.remove(id);
 		//}
+	}
+
+	public Vector<Zone> getZoneList() {
+		return zoneList;
+	}
+
+	public void setZoneList(Vector<Zone> zoneList) {
+		this.zoneList = zoneList;
 	}
 
 }

@@ -25,22 +25,17 @@
 package vialab.simpleMultiTouch;
 
 import java.awt.BorderLayout;
-import java.awt.Color;
 import java.awt.DisplayMode;
 import java.awt.Frame;
 import java.awt.GraphicsDevice;
 import java.awt.GraphicsEnvironment;
 import java.awt.Rectangle;
 import java.util.HashMap;
-import java.util.Random;
 import java.util.Vector;
 
 import processing.core.PApplet;
-import processing.core.PFont;
-import processing.core.PMatrix3D;
-import processing.core.PVector;
 import vialab.mouseToTUIO.MouseToTUIO;
-import vialab.simpleMultiTouch.events.TapEvent;
+import vialab.simpleMultiTouch.zones.Zone;
 import TUIO.TuioClient;
 import TUIO.TuioCursor;
 import TUIO.TuioObject;
@@ -59,18 +54,20 @@ import TUIO.TuioPoint;
  */
 public class TouchClient {
 	/** Processing PApplet */
-	static PApplet parent;
+	static PApplet pApplet;
 	/** Gesture Handler */
 	static GestureHandler handler;
 
 	/** Tuio Client that listens for Tuio Messages via port 3333 UDP */
-	static TuioClient tuioClient;
+	private static TuioClient tuioClient;
 
 	/** The main zone list */
-	protected static Vector<Zone> zoneList = new Vector<Zone>();
+	private static Vector<Zone> zoneList = new Vector<Zone>();
 
 	/** Flag for drawing touch points */
 	static boolean drawTouchPoints = true;
+	/** Flag for drawing touch paths */
+	static boolean drawTouchPath = false;
 	static HashMap<TuioCursor, int[]> colours = new HashMap<TuioCursor, int[]>();
 	static int size;
 
@@ -84,82 +81,83 @@ public class TouchClient {
 	/**
 	 * Default Constructor. Default port is 3333 for TUIO
 	 * 
-	 * @param parent
+	 * @param pApplet
 	 *            PApplet - The Processing PApplet
 	 */
-	public TouchClient(PApplet parent) {
-		this(parent, 3333);
+	public TouchClient(PApplet pApplet) {
+		this(pApplet, 3333);
 	}
 
 	/**
 	 * Constructor. Allows you to set the port to connect to.
 	 * 
-	 * @param parent
+	 * @param pApplet
 	 *            PApplet - The Processing PApplet
 	 * @param port
 	 *            int - The port to connect to.
 	 */
-	public TouchClient(PApplet parent, int port) {
-		this(parent, port, true, false);
+	public TouchClient(PApplet pApplet, int port) {
+		this(pApplet, port, true, false);
 	}
 
-	public TouchClient(PApplet parent, boolean emulateTouches) {
-		this(parent, emulateTouches, false);
+	public TouchClient(PApplet pApplet, boolean emulateTouches) {
+		this(pApplet, emulateTouches, false);
 	}
 
-	public TouchClient(PApplet parent, boolean emulateTouches, boolean fullscreen) {
-		this(parent, 3333, emulateTouches, fullscreen);
+	public TouchClient(PApplet pApplet, boolean emulateTouches, boolean fullscreen) {
+		this(pApplet, 3333, emulateTouches, fullscreen);
 	}
 
-	public TouchClient(PApplet parent, int port, boolean emulateTouches, boolean fullscreen) {
-		size = parent.getHeight()/20;
+	public TouchClient(PApplet pApplet, int port, boolean emulateTouches, boolean fullscreen) {
+		size = pApplet.getHeight()/20;
 		
-		parent.setLayout(new BorderLayout());
+		pApplet.setLayout(new BorderLayout());
 
 		if (emulateTouches) {
-			parent.add(new MouseToTUIO(parent.getWidth(), parent.getHeight()));
+			pApplet.add(new MouseToTUIO(pApplet.getWidth(), pApplet.getHeight()));
 		}
 
-		parent.frame.removeNotify();
+		pApplet.frame.removeNotify();
 		if (fullscreen) {
-			parent.frame.setUndecorated(true);
-			parent.frame.setIgnoreRepaint(true);
-			parent.frame.setExtendedState(Frame.MAXIMIZED_BOTH);
+			pApplet.frame.setUndecorated(true);
+			pApplet.frame.setIgnoreRepaint(true);
+			pApplet.frame.setExtendedState(Frame.MAXIMIZED_BOTH);
 
 			GraphicsEnvironment environment = GraphicsEnvironment.getLocalGraphicsEnvironment();
 			GraphicsDevice displayDevice = environment.getDefaultScreenDevice();
 
 			DisplayMode mode = displayDevice.getDisplayMode();
 			Rectangle fullScreenRect = new Rectangle(0, 0, mode.getWidth(), mode.getHeight());
-			parent.frame.setBounds(fullScreenRect);
-			parent.frame.setVisible(true);
+			pApplet.frame.setBounds(fullScreenRect);
+			pApplet.frame.setVisible(true);
 
 			// the following is exclusive mode
-			//	        displayDevice.setFullScreenWindow(parent.frame);
+			//	        displayDevice.setFullScreenWindow(pApplet.frame);
 			//
-			//			Rectangle fullScreenRect = parent.frame.getBounds();
+			//			Rectangle fullScreenRect = pApplet.frame.getBounds();
 
-			parent.frame.setBounds(fullScreenRect);
-			parent.setBounds((fullScreenRect.width - parent.width) / 2,
-					(fullScreenRect.height - parent.height) / 2, parent.width, parent.height);
+			pApplet.frame.setBounds(fullScreenRect);
+			pApplet.setBounds((fullScreenRect.width - pApplet.width) / 2,
+					(fullScreenRect.height - pApplet.height) / 2, pApplet.width, pApplet.height);
 		}
-		parent.frame.addNotify();
-		parent.frame.toFront();
+		pApplet.frame.addNotify();
+		pApplet.frame.toFront();
 
-		TouchClient.parent = parent;
-		parent.registerDispose(this);
-		parent.registerDraw(this);
-		parent.registerPre(this);
+		TouchClient.pApplet = pApplet;
+		pApplet.registerDispose(this);
+		pApplet.registerDraw(this);
+		pApplet.registerPre(this);
 		handler = new GestureHandler();
 
-		tuioClient = new TuioClient(port);
+		setTuioClient(new TuioClient(port));
 
 		SimpleTuioListener listener = new SimpleTuioListener(handler, picker);
-		tuioClient.addTuioListener(listener);
+		getTuioClient().addTuioListener(listener);
 		//		tuioClient.addTuioListener(this);
-		tuioClient.connect();
+		getTuioClient().connect();
 	}
 
+	
 	/**
 	 * Set the debug mode on or off
 	 * 
@@ -168,13 +166,21 @@ public class TouchClient {
 	public void setDebugMode(boolean debug){
 		TouchClient.debugMode = debug;
 	}
+	
+	/**
+	 * Returns the debug mode status
+	 * @return
+	 */
+	public static boolean getDebugMode(){
+		return debugMode;
+	}
 	/**
 	 * Returns the list of zones.
 	 * 
 	 * @return zoneList
 	 */
 	public Vector<Zone> getZones() {
-		return zoneList;
+		return getZoneList();
 	}
 	
 	/**
@@ -194,52 +200,77 @@ public class TouchClient {
 	public void setDrawTouchPoints(boolean drawTouchPoints) {
 		TouchClient.drawTouchPoints = drawTouchPoints;
 	}
+	
+	/**
+	 * Sets the flag for drawing touch paths in the PApplet. Draws the touch
+	 * paths if flag is set to true.
+	 * 
+	 * @param drawTouchPath
+	 *            boolean - flag
+	 */
+	public void setDrawTouchPath(boolean drawTouchPath){
+		TouchClient.drawTouchPath = drawTouchPath;
+	}
 
 	/**
 	 * Draws the touch points in the PApplet if flag is set to true.
 	 */
 	public static void drawTouchPoints() {
-		Vector<TuioCursor> curs = tuioClient.getTuioCursors();
-		parent.strokeWeight(1);
-		parent.noFill();
+		Vector<TuioCursor> curs = getTuioClient().getTuioCursors();
+		pApplet.strokeWeight(1);
+		pApplet.noFill();
 		
 		if (curs.size() > 0) {
 			for (int i = 0; i < curs.size(); i++) {
 				
-				//parent.stroke(255);
 				if(colours.containsKey(curs.get(i))){
-					parent.fill(colours.get(curs.get(i))[0], colours.get(curs.get(i))[1], colours.get(curs.get(i))[2]);
-					parent.stroke(colours.get(curs.get(i))[0], colours.get(curs.get(i))[1], colours.get(curs.get(i))[2]);
+					pApplet.fill(colours.get(curs.get(i))[0], colours.get(curs.get(i))[1], colours.get(curs.get(i))[2]);
+					pApplet.stroke(colours.get(curs.get(i))[0], colours.get(curs.get(i))[1], colours.get(curs.get(i))[2]);
 				}
-				parent.ellipse(curs.get(i).getScreenX(TouchClient.parent.width), curs.get(i)
-						.getScreenY(parent.height), size, size);
-				/*parent.stroke(0);
-				parent.ellipse(curs.get(i).getScreenX(parent.width),
-						curs.get(i).getScreenY(parent.height), 22, 22);*/
+				pApplet.ellipse(curs.get(i).getScreenX(TouchClient.pApplet.width), curs.get(i)
+						.getScreenY(pApplet.height), size, size);
+				
 				Vector<TuioPoint> path = curs.get(i).getPath();
-				if (path.size() > 1) {
+				if (drawTouchPath && path.size() > 1) {
 					for (int j = 1; j < path.size(); j++) {
 
-						parent.stroke(255);
-						parent.line(path.get(j).getScreenX(parent.width) - 0.5f, path.get(j)
-								.getScreenY(parent.height) - 0.5f,
-								path.get(j - 1).getScreenX(parent.width) - 0.5f, path.get(j - 1)
-								.getScreenY(parent.height) - 0.5f);
-						parent.ellipse(path.get(j).getScreenX(parent.width), path.get(j)
-								.getScreenY(parent.height), 5, 5);
-						parent.stroke(0);
-						parent.line(path.get(j).getScreenX(parent.width) + 0.5f, path.get(j)
-								.getScreenY(parent.height) + 0.5f,
-								path.get(j - 1).getScreenX(parent.width) + 0.5f, path.get(j - 1)
-								.getScreenY(parent.height) + 0.5f);
-						parent.ellipse(path.get(j).getScreenX(parent.width), path.get(j)
-								.getScreenY(parent.height), 7, 7);
+						pApplet.stroke(255);
+						pApplet.line(path.get(j).getScreenX(pApplet.width) - 0.5f, path.get(j)
+								.getScreenY(pApplet.height) - 0.5f,
+								path.get(j - 1).getScreenX(pApplet.width) - 0.5f, path.get(j - 1)
+								.getScreenY(pApplet.height) - 0.5f);
+						pApplet.ellipse(path.get(j).getScreenX(pApplet.width), path.get(j)
+								.getScreenY(pApplet.height), 5, 5);
+						pApplet.stroke(0);
+						pApplet.line(path.get(j).getScreenX(pApplet.width) + 0.5f, path.get(j)
+								.getScreenY(pApplet.height) + 0.5f,
+								path.get(j - 1).getScreenX(pApplet.width) + 0.5f, path.get(j - 1)
+								.getScreenY(pApplet.height) + 0.5f);
+						pApplet.ellipse(path.get(j).getScreenX(pApplet.width), path.get(j)
+								.getScreenY(pApplet.height), 7, 7);
 					}
 				}
 			}
 		}
 	}
+	
+	
 
+	/**
+	 * Gets the PApplet
+	 * @return
+	 */
+	public static PApplet getPApplet(){
+		return pApplet;
+	}
+	
+	/**
+	 * Sets the PApplet
+	 * @param applet
+	 */
+	public void setPApplet(PApplet applet){
+		pApplet = applet;
+	}
 	/**
 	 * Adds a zone to the zone list. When a student creates a zone, they must
 	 * add it to this list.
@@ -248,8 +279,8 @@ public class TouchClient {
 	 *            Zone - The zone to add to the list.
 	 */
 	public void addZone(Zone zone) {
-		synchronized(zoneList){
-			zoneList.add(zone);
+		synchronized(getZoneList()){
+			getZoneList().add(zone);
 		}
 		
 		/*synchronized(picker){
@@ -266,8 +297,8 @@ public class TouchClient {
 	 *            Zone - The zone to remove from the list.
 	 */
 	public void removeZone(Zone zone) {
-		synchronized(zoneList){
-			zoneList.remove(zone);
+		synchronized(getZoneList()){
+			getZoneList().remove(zone);
 		}
 		
 		/*synchronized(picker){
@@ -279,19 +310,19 @@ public class TouchClient {
 	 * Pull a zone to the top layer.
 	 */
 	public void pullToTop(Zone zone){
-		synchronized (zoneList) {
-			int i = zoneList.indexOf(zone);
+		synchronized (getZoneList()) {
+			int i = getZoneList().indexOf(zone);
 			if (i > 0) {
-				zoneList.remove(i);
-				zoneList.add(zone);
+				getZoneList().remove(i);
+				getZoneList().add(zone);
 			}
 		}
 
-		synchronized (picker.zoneList) {
-			int i = picker.zoneList.indexOf(zone);
+		synchronized (picker.getZoneList()) {
+			int i = picker.getZoneList().indexOf(zone);
 			if (i > 0) {
-				picker.zoneList.remove(i);
-				picker.zoneList.add(zone);
+				picker.getZoneList().remove(i);
+				picker.getZoneList().add(zone);
 			}
 		}
 	}
@@ -300,33 +331,24 @@ public class TouchClient {
 	 */
 	public void pushToBottom(Zone zone){
 
-		synchronized (zoneList) {
-			int i = zoneList.indexOf(zone);
+		synchronized (getZoneList()) {
+			int i = getZoneList().indexOf(zone);
 			if (i > 0) {
-				zoneList.remove(i);
-				zoneList.add(0, zone);
+				getZoneList().remove(i);
+				getZoneList().add(0, zone);
 			}
 		}
 
 
-		synchronized (picker.zoneList) {
-			int i = picker.zoneList.indexOf(zone);
+		synchronized (picker.getZoneList()) {
+			int i = picker.getZoneList().indexOf(zone);
 			if (i > 0) {
-				picker.zoneList.remove(i);
-				picker.zoneList.add(0, zone);
+				picker.getZoneList().remove(i);
+				picker.getZoneList().add(0, zone);
 			}
 		}
 	}
 
-	/**
-	 * Returns the TouchClient's PApplet
-	 * 
-	 * @return parent
-	 * 				Parent - The TouchClient's PApplet
-	 */
-	public PApplet getParent(){
-		return TouchClient.parent;
-	}
 
 	/**
 	 * 	Apply the zone's matrix to the touch input
@@ -345,14 +367,14 @@ public class TouchClient {
 	 * the matrix, and when at the end of the list, it draws the touch points.
 	 */
 	public synchronized void draw() {
-		synchronized (zoneList) {
-			for (Zone zone : zoneList) {
-				if (zone != null && zone.active) {
-					TouchClient.parent.pushMatrix();
+		synchronized (getZoneList()) {
+			for (Zone zone : getZoneList()) {
+				if (zone != null && zone.isActive()) {
+					TouchClient.pApplet.pushMatrix();
 					zone.preDraw();
 					zone.drawZone();
 					zone.postDraw();
-					TouchClient.parent.popMatrix();
+					TouchClient.pApplet.popMatrix();
 				}
 			}
 		}
@@ -368,7 +390,7 @@ public class TouchClient {
 	 * @return Vector<TuioObject>
 	 */
 	public Vector<TuioObject> getTuioObjects() {
-		return tuioClient.getTuioObjects();
+		return getTuioClient().getTuioObjects();
 	}
 
 	/**
@@ -376,8 +398,8 @@ public class TouchClient {
 	 * 
 	 * @return Vector<TuioCursor>
 	 */
-	public Touch[] getTouches() {
-		Vector<TuioCursor> cursors = tuioClient.getTuioCursors();
+	public static Touch[] getTouches() {
+		Vector<TuioCursor> cursors = getTuioClient().getTuioCursors();
 		Touch[] touches = new Touch[cursors.size()];
 		int i = 0;
 		for (TuioCursor c : cursors) {
@@ -394,7 +416,7 @@ public class TouchClient {
 	 * @return TuioObject
 	 */
 	public TuioObject getTuioObject(long s_id) {
-		return tuioClient.getTuioObject(s_id);
+		return getTuioClient().getTuioObject(s_id);
 	}
 
 	/**
@@ -405,7 +427,7 @@ public class TouchClient {
 	 * @return TuioCursor
 	 */
 	public static Touch getTouch(long s_id) {
-		return new Touch(tuioClient.getTuioCursor(s_id));
+		return new Touch(getTuioClient().getTuioCursor(s_id));
 	}
 
 	/**
@@ -414,7 +436,7 @@ public class TouchClient {
 	 * @return number of current touches
 	 */
 	public int getTouchCount() {
-		return tuioClient.getTuioCursors().size();
+		return getTuioClient().getTuioCursors().size();
 	}
 
 	/**
@@ -430,13 +452,13 @@ public class TouchClient {
 			if (zone != null && zone.active) {
 				if (zone.throwable && zone.getNumIds() > 0 && (zone.vx != 0 || zone.vy != 0)) {
 					float vratio = zone.vy / zone.vx;
-					if (zone.vx > parent.width) {
-						zone.vx = parent.width;
-						zone.vy = (int) (vratio * parent.width);
+					if (zone.vx > pApplet.width) {
+						zone.vx = pApplet.width;
+						zone.vy = (int) (vratio * pApplet.width);
 					}// governor
-					if (zone.vy > parent.height) {
-						zone.vy = parent.height;
-						zone.vx = (int) (parent.width / vratio);
+					if (zone.vy > pApplet.height) {
+						zone.vy = pApplet.height;
+						zone.vx = (int) (pApplet.width / vratio);
 					}
 					float ax = -zone.frictionX, ay = -zone.frictionY;// deceleration
 					if (zone.vy == 0) {
@@ -449,7 +471,7 @@ public class TouchClient {
 						ax = ratio * ay;
 					}
 
-					float t = (parent.millis() - zone.releaseTime) / 10000f;
+					float t = (pApplet.millis() - zone.releaseTime) / 10000f;
 					float movementX = zone.vx * t + 0.5f * ax * PApplet.pow(t, 2);
 					float movementY = zone.vy * t + 0.5f * ay * PApplet.pow(t, 2);
 					// Get the movement in the zone's matrix space
@@ -473,14 +495,14 @@ public class TouchClient {
 
 					if (PApplet.abs(ax * t) >= PApplet.abs(zone.vx)
 							|| PApplet.abs(ay * t) >= PApplet.abs(zone.vy) || zone.border == true
-							&& (tA.x < 0 || tA.x > TouchClient.parent.width) || tA.y < 0
-							|| tA.y > TouchClient.parent.height || tB.x < 0
-							|| tB.x > TouchClient.parent.width || tB.y < 0
-							|| tB.y > TouchClient.parent.height || tC.x < 0
-							|| tC.x > TouchClient.parent.width || tC.y < 0
-							|| tC.y > TouchClient.parent.height || tD.x < 0
-							|| tD.x > TouchClient.parent.width || tD.y < 0
-							|| tD.y > TouchClient.parent.height) {
+							&& (tA.x < 0 || tA.x > TouchClient.pApplet.width) || tA.y < 0
+							|| tA.y > TouchClient.pApplet.height || tB.x < 0
+							|| tB.x > TouchClient.pApplet.width || tB.y < 0
+							|| tB.y > TouchClient.pApplet.height || tC.x < 0
+							|| tC.x > TouchClient.pApplet.width || tC.y < 0
+							|| tC.y > TouchClient.pApplet.height || tD.x < 0
+							|| tD.x > TouchClient.pApplet.width || tD.y < 0
+							|| tD.y > TouchClient.pApplet.height) {
 
 						// Finish the movement if friction multiplied by time is
 						// bigger than the zone's velocity
@@ -549,8 +571,8 @@ public class TouchClient {
 	 * threads, disconnect from the net, unload memory, etc.
 	 */
 	public void dispose() {
-		if (tuioClient.isConnected()) {
-			tuioClient.disconnect();
+		if (getTuioClient().isConnected()) {
+			getTuioClient().disconnect();
 		}
 	}
 
@@ -563,7 +585,7 @@ public class TouchClient {
 	 * @see <a href='http://dm.tzi.de/touch2tuio/'>Touch2Tuio</a>
 	 */
 	public void runWinTouchTuioServer(String touch2TuioExePath) {
-		final String tuioServerCommand = touch2TuioExePath + " " + parent.frame.getTitle();
+		final String tuioServerCommand = touch2TuioExePath + " " + pApplet.frame.getTitle();
 
 		Thread serverThread = new Thread() {
 
@@ -581,5 +603,21 @@ public class TouchClient {
 			}
 		};
 		serverThread.start();
+	}
+
+	public static TuioClient getTuioClient() {
+		return tuioClient;
+	}
+
+	public static void setTuioClient(TuioClient tuioClient) {
+		TouchClient.tuioClient = tuioClient;
+	}
+
+	public static Vector<Zone> getZoneList() {
+		return zoneList;
+	}
+
+	public static void setZoneList(Vector<Zone> zoneList) {
+		TouchClient.zoneList = zoneList;
 	}
 }

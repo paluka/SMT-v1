@@ -3,7 +3,7 @@ package vialab.simpleMultiTouch;
 import java.util.Vector;
 
 import processing.core.PApplet;
-
+import vialab.simpleMultiTouch.zones.Zone;
 import TUIO.TuioCursor;
 import TUIO.TuioTime;
 import TUIO.TuioPoint;
@@ -14,7 +14,7 @@ import TUIO.TuioPoint;
 public class Touch extends TuioCursor {
 
 	/** Processing PApplet*/
-	static PApplet applet = TouchClient.parent;
+	static PApplet applet = TouchClient.pApplet;
 	/** The individual cursor ID number that is assigned to each TuioCursor.*/
 	public final int cursorId;
 	/** Reflects the current state of the TuioComponent.*/

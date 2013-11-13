@@ -6,6 +6,7 @@ import java.lang.reflect.Method;
 
 import processing.core.PApplet;
 import processing.core.PVector;
+import vialab.simpleMultiTouch.zones.Zone;
 import TUIO.TuioCursor;
 import TUIO.TuioListener;
 import TUIO.TuioObject;
@@ -39,7 +40,7 @@ class SimpleTuioListener implements TuioListener {
 		this.picker = picker;
 		this.handler = handler;
 
-		this.applet = TouchClient.parent;
+		this.applet = TouchClient.pApplet;
 		retrieveMethods(applet);
 	}
 
@@ -84,35 +85,35 @@ class SimpleTuioListener implements TuioListener {
 
 				if (zone.getNumIds() == 0) {
 					//if (zone.changed) {
-						zone.inverse.reset();
-						zone.inverse.apply(zone.matrix);
-						zone.inverse.invert();
-						zone.changed = false;
+						zone.getInverse().reset();
+						zone.getInverse().apply(zone.getMatrix());
+						zone.getInverse().invert();
+						zone.setChanged(false);
 					//}
 					PVector world = new PVector();
 					PVector mouse = new PVector(x, y);
-					zone.inverse.mult(mouse, world);
+					zone.getInverse().mult(mouse, world);
 
 					
-					zone.localX = world.x;
-					zone.localY = world.y;
+					zone.setLocalX(world.x);
+					zone.setLocalY(world.y);
 					
 					
-					zone.lastLocalX = world.x;
-					zone.lastLocalY = world.y;
+					zone.setLastLocalX(world.x);
+					zone.setLastLocalY(world.y);
 				}
 				zone.addId(tcur.getSessionID());
 
-				zone.touchList.add(touch);
-				zone.tuioCursorList.add(tcur);
-				zone.currentTouches++;
+				zone.getTouchList().add(touch);
+				zone.getTuioCursorList().add(tcur);
+				zone.setCurrentTouches(zone.getCurrentTouches() + 1);
 				handler.detectOnAdd(zone, tcur, x, y);
 
 				//********************************************* Used for applying the zone's matrix to the touch points
 
 				if(TouchClient.applyZoneMatrix){
-					float newX = x * zone.matrix.m00 + y * zone.matrix.m01 + 0 * zone.matrix.m02 + zone.matrix.m03;
-					float newY = x * zone.matrix.m10 + y * zone.matrix.m11 + 0 * zone.matrix.m12 + zone.matrix.m13;
+					float newX = x * zone.getMatrix().m00 + y * zone.getMatrix().m01 + 0 * zone.getMatrix().m02 + zone.getMatrix().m03;
+					float newY = x * zone.getMatrix().m10 + y * zone.getMatrix().m11 + 0 * zone.getMatrix().m12 + zone.getMatrix().m13;
 
 					TuioCursor t = new TuioCursor(tcur);
 					t.update(newX/applet.width, newY/applet.height);
@@ -163,18 +164,18 @@ class SimpleTuioListener implements TuioListener {
 
 				if (zone.getId(0) == tcur.getSessionID()) {
 					//if (zone.changed) {
-						zone.inverse.reset();
-						zone.inverse.apply(zone.matrix);
-						zone.inverse.invert();
-						zone.changed = false;
+						zone.getInverse().reset();
+						zone.getInverse().apply(zone.getMatrix());
+						zone.getInverse().invert();
+						zone.setChanged(false);
 					//}
 					PVector world = new PVector();
 					PVector mouse = new PVector(x, y);
-					zone.inverse.mult(mouse, world);
+					zone.getInverse().mult(mouse, world);
 	
 					
-					zone.localX = world.x;
-					zone.localY = world.y;
+					zone.setLocalX(world.x);
+					zone.setLocalY(world.y);
 				}
 
 				// This is to enable proper propagation of touches
@@ -192,8 +193,8 @@ class SimpleTuioListener implements TuioListener {
 				//********************************************* Used for applying the zone's matrix to the touch points
 				if(TouchClient.applyZoneMatrix){
 
-					float newX = x * zone.matrix.m00 + y * zone.matrix.m01 + 0 * zone.matrix.m02 + zone.matrix.m03;
-					float newY = x * zone.matrix.m10 + y * zone.matrix.m11 + 0 * zone.matrix.m12 + zone.matrix.m13;
+					float newX = x * zone.getMatrix().m00 + y * zone.getMatrix().m01 + 0 * zone.getMatrix().m02 + zone.getMatrix().m03;
+					float newY = x * zone.getMatrix().m10 + y * zone.getMatrix().m11 + 0 * zone.getMatrix().m12 + zone.getMatrix().m13;
 
 					TuioCursor t = new TuioCursor(tcur);
 					t.update(newX/applet.width, newY/applet.height);
@@ -247,19 +248,19 @@ class SimpleTuioListener implements TuioListener {
 				// Detect gestures on remove
 				handler.detectOnRemove(zone, tcur, x, y);
 				// Reset 4 finger xyPinch distances
-				if (zone.currentTouches == 4) {
-					zone.lastSclDist = 1;
-					zone.lastSclXDist = 1;
-					zone.lastSclYDist = 1;
-					zone.xyPinching = false;
+				if (zone.getCurrentTouches() == 4) {
+					zone.setLastSclDist(1);
+					zone.setLastSclXDist(1);
+					zone.setLastSclYDist(1);
+					zone.setXYPinching(false);
 				}
 				/*if (zone.getId(0) == tcur.getSessionID()){// || zone.getNumIds() == 1) {
 					zone.reset();
 					//picker.removeMapping(zone);
 				} else {*/
 					if (zone.getId(1) == tcur.getSessionID()) {		
-						zone.pinching = false;
-						zone.rotating = false;
+						zone.setPinching(false);
+						zone.setRotating(false);
 						// Reset lastLocalX and lastLocalY for dragging
 						// It jumps otherwise
 						//TuioCursor cursor = TouchClient.getTouch(zone.getId(0));
@@ -268,20 +269,20 @@ class SimpleTuioListener implements TuioListener {
 						//zone.lastLocalY = zone.localY;
 					} 
 						zone.removeId(tcur.getSessionID());
-						zone.touchList.remove(touch);
-						zone.tuioCursorList.remove(tcur);
-						zone.currentTouches--;
+						zone.getTouchList().remove(touch);
+						zone.getTuioCursorList().remove(tcur);
+						zone.setCurrentTouches(zone.getCurrentTouches() - 1);
 					
 				//}
 				//picker.removeMapping(tcur.getSessionID());
 				
-				zone.toggle = !zone.toggle;
+				zone.setToggle(!zone.getToggle());
 
 				//********************************************* Used for applying the zone's matrix to the touch points
 				if(TouchClient.applyZoneMatrix){
 
-					float newX = x * zone.matrix.m00 + y * zone.matrix.m01 + 0 * zone.matrix.m02 + zone.matrix.m03;
-					float newY = x * zone.matrix.m10 + y * zone.matrix.m11 + 0 * zone.matrix.m12 + zone.matrix.m13;
+					float newX = x * zone.getMatrix().m00 + y * zone.getMatrix().m01 + 0 * zone.getMatrix().m02 + zone.getMatrix().m03;
+					float newY = x * zone.getMatrix().m10 + y * zone.getMatrix().m11 + 0 * zone.getMatrix().m12 + zone.getMatrix().m13;
 
 					TuioCursor t = new TuioCursor(tcur);
 					t.update(newX/applet.width, newY/applet.height);
