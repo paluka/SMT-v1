@@ -164,6 +164,9 @@ public class Zone extends ZoneAnimator {
 
 	/** Name of zone group */
 	protected String group = null;
+	
+	/** Name of the Zone */
+	protected String name = "";
 
 	protected float releaseTime = 0, vx, vy, scl = 1.0f, sclX = 1.0f, sclY = 1.0f;
 
@@ -248,6 +251,22 @@ public class Zone extends ZoneAnimator {
 
 	public void setColour(Color backgroundColour){
 		this.backgroundColour = backgroundColour;
+	}
+	
+	/**
+	 * Sets the zone's name
+	 * @param name
+	 */
+	public void setName(String name){
+		this.name = name;
+	}
+	
+	/**
+	 * Gets the zone's name
+	 * @return
+	 */
+	public String getName(){
+		return name;
 	}
 	
 	public Color getColour(){
@@ -940,6 +959,11 @@ public class Zone extends ZoneAnimator {
 	 */
 
 	public void postDraw(){
+		if(TouchClient.getDebugMode()){
+			applet.fill(0);
+			applet.text(name, getX(), getY());
+			
+		}
 
 	}
 

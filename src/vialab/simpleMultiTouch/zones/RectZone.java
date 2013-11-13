@@ -58,7 +58,7 @@ public class RectZone extends Zone{
 	 * certain colour drawn overtop of its contents.
 	 */
 	boolean colFilter = false;
-	Color filterColor = new Color(210, 210, 210, 155);
+	Color filterColor = new Color(110, 110, 110, 255);
 	
 	
 	
@@ -138,7 +138,7 @@ public class RectZone extends Zone{
 	 * @param flag
 	 */
 	public void setFilterColFlag(boolean flag){
-		
+		colFilter = flag;
 	}
 	
 	/**
@@ -278,11 +278,17 @@ public class RectZone extends Zone{
 
 
 		if(colFilter){
-			TouchClient.getPApplet().fill(filterColor.getRed(), filterColor.getGreen(), filterColor.getBlue(), filterColor.getAlpha());
-			TouchClient.getPApplet().rect(this.getX(),  this.getY(), this.getWidth(),  this.getHeight());
+			drawFilter();
 		}
 	}
 
+	/**
+	 * Draws the rectangular colour filter
+	 */
+	public void drawFilter(){
+		TouchClient.getPApplet().fill(filterColor.getRed(), filterColor.getGreen(), filterColor.getBlue(), filterColor.getAlpha());
+		TouchClient.getPApplet().rect(this.getX(),  this.getY(), this.getWidth(),  this.getHeight());
+	}
 
 	//////////////////////////////////////////////
 	///// From WebSite - http://quasipartikel.at/2010/01/07/quadratic-bezier-curves-for-processingjs/

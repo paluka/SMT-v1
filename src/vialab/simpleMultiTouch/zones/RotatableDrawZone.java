@@ -24,8 +24,12 @@ public class RotatableDrawZone extends RectZone{
 	PImage captureArea;
 	/** Directory where the saved image will be placed */
 	String saveDir = "";
-	boolean saving = false;
+	/** Image file has been saved */
 	boolean saved = false;
+	/** Image file is in the process of being saved (TODO: Does not reset) */
+	boolean saving = false;
+	/** Image has been captured */
+	boolean captured = false;
 	boolean curve = true;
 	boolean flipped = false;
 
@@ -35,8 +39,6 @@ public class RotatableDrawZone extends RectZone{
 	int[] tColour;
 	float textSize;
 	String text = "Brush";
-	//int oldBrushWidth = 10;
-	//int oldBrushHeight = 10;
 
 	int[] brushColour = {0, 0, 0};
 	int brushWidth = 10;
@@ -303,7 +305,8 @@ public class RotatableDrawZone extends RectZone{
 		} 
 		
 		captureArea = getScreen((int)(getX() + getWidth()/4), (int)(getY() + rHeight), (int)(getWidth()-getWidth()/4), (int)(getHeight()-rHeight));
-		
+		captured = true;
+
 		if (flipped){
 			this.rotate(PConstants.PI);
 		}
@@ -520,10 +523,30 @@ public class RotatableDrawZone extends RectZone{
 		}
 	}
 
+	/**
+	 * Returns true if image has been saved
+	 * @return
+	 */
 	public boolean getSavedStatus(){
 		return saved;
 	}
 
+	/**
+	 * Captured area encapsulated in a PImage
+	 * @return
+	 */
+	public PImage getImage(){
+		return captureArea;
+	}
+	
+	/**
+	 * Return true if the image has been captured
+	 * and is in the PImage
+	 * @return
+	 */
+	public boolean getCapturedStatus(){
+		return captured;
+	}
 	/**
 	 * Returns the number of files in the save directory
 	 * **Warning**: Only works if the save zone has been tapped,

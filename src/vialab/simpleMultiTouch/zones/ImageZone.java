@@ -268,6 +268,10 @@ public class ImageZone extends RectZone {
 			}
 
 		}
+		
+		if(colFilter){
+			drawFilter();
+		}
 	}
 
 	//imageFlip function by nick lally - http://www.openprocessing.org/sketch/22331
