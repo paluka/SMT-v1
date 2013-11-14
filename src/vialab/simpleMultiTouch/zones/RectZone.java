@@ -58,7 +58,7 @@ public class RectZone extends Zone{
 	 * certain colour drawn overtop of its contents.
 	 */
 	boolean colFilter = false;
-	Color filterColor = new Color(110, 110, 110, 255);
+	Color filterColor = new Color(110, 110, 110, 55);
 	
 	
 	
@@ -287,6 +287,7 @@ public class RectZone extends Zone{
 	 */
 	public void drawFilter(){
 		TouchClient.getPApplet().fill(filterColor.getRed(), filterColor.getGreen(), filterColor.getBlue(), filterColor.getAlpha());
+		TouchClient.getPApplet().noStroke();
 		TouchClient.getPApplet().rect(this.getX(),  this.getY(), this.getWidth(),  this.getHeight());
 	}
 
