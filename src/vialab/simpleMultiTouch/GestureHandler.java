@@ -580,7 +580,7 @@ public class GestureHandler {
 	 */
 	private void detectTouchUp(Zone zone, int xIn, int yIn, long[] cursor) {
 
-		if (zone.getLastTouchUp() != cursor[0]) {
+		if (zone.getLastTouchUp() != cursor[0] && zone.contains(xIn, yIn)) {
 
 			fireTapEvent(xIn, yIn, cursor, 1, zone);
 			

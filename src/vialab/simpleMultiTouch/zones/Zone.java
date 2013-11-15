@@ -142,9 +142,9 @@ public class Zone extends ZoneAnimator {
 
 	private boolean toggle = false;
 
-	private boolean tapDown = true;
+	private boolean tapDown = false;
 
-	private boolean tapUp = false;
+	private boolean tapUp = true;
 
 	protected boolean draggableHandled = false, xDraggableHandled = false,
 			yDraggableHandled = false, pinchableHandled = false, throwableHandled = false,
