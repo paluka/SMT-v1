@@ -167,7 +167,7 @@ public class DrawZone extends RectZone{
 		
 		saveZone = new TextZone(getX(), getY()-getHeight()/5, getWidth()/4, getHeight()/5, font, "Save", 16, "CENTER", "CENTER"){
 			public void tapEvent(TapEvent e){
-				if (getTappable()){
+				if (isTappable()){
 
 					//saveArea = applet.get(getX(), getY()+getHeight(), getWidth()*4, getHeight()*5);
 					saveArea = getScreen((int)getX(), (int)(getY()+getHeight()), (int)getWidth()*4, (int)getHeight()*5);
@@ -205,7 +205,7 @@ public class DrawZone extends RectZone{
 	public void createCurvePicker(){
 		curveZone = new TextZone(getX()+getWidth()/4, getY()-getHeight()/5, getWidth()/4, getHeight()/5, font, "Curve", 16, "CENTER", "CENTER"){
 			public void tapEvent(TapEvent e){
-				if (getTappable()){
+				if (isTappable()){
 					if(!curve){
 						curve = true;
 						this.setText("Paint Brush");
@@ -229,7 +229,7 @@ public class DrawZone extends RectZone{
 		
 		undoZone = new TextZone(getX()+getWidth()-getWidth()/4, getY()-getHeight()/5, getWidth()/4, getHeight()/5, font, "Erase", 16, "CENTER", "CENTER"){
 			public void tapEvent(TapEvent e){
-				if (getTappable()){
+				if (isTappable()){
 					if(!curve){
 						if(!points.isEmpty()){
 							//remove the last point
@@ -343,7 +343,7 @@ public class DrawZone extends RectZone{
 			}
 			
 			public void tapEvent(TapEvent e){
-				if (getTappable()){
+				if (isTappable()){
 					//Row one
 					//black
 					if(e.getX() < (colourZone.getX() + colourZone.getWidth()/5)

@@ -97,7 +97,7 @@ public class GestureHandler {
 		// ////////////////
 		// Tap Gesture
 		// ////////////////
-		if (zone.getTappable() && zone.getTapDown()) {
+		if (zone.isTappable() && zone.getTapDown()) {
 			detectTouchDown(zone, xIn, yIn, cursor);
 		}
 	}
@@ -119,7 +119,7 @@ public class GestureHandler {
 		// ////////////////
 		// Tap Gesture
 		// ////////////////
-		if (zone.getTappable() && zone.getTapUp()) {
+		if (zone.isTappable() && zone.getTapUp()) {
 			detectTouchUp(zone, xIn, yIn, cursor);
 		}
 

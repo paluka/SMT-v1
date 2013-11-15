@@ -1559,7 +1559,7 @@ public class Zone extends ZoneAnimator {
 	 *            TapEvent - The tap event
 	 */
 	public void tapEvent(TapEvent e) {
-		if (getTappable()) {
+		if (isTappable()) {
 			if(TouchClient.getDebugMode()) {
 				if (e.getNumTaps() == 2) {
 					PApplet.println("You double tapped a zone!");
@@ -1580,7 +1580,7 @@ public class Zone extends ZoneAnimator {
 				for (Zone zone : zoneList) {
 					if (zone != this && zone.group != null && zone.group.equalsIgnoreCase(this.group)
 							&& !this.childList.contains(zone)) {
-						if (zone.getTappable()) {
+						if (zone.isTappable()) {
 							;
 						}
 					}
@@ -1776,7 +1776,7 @@ public class Zone extends ZoneAnimator {
 		this.toggle = toggle;
 	}
 
-	public boolean getTappable() {
+	public boolean isTappable() {
 		return tappable;
 	}
 
