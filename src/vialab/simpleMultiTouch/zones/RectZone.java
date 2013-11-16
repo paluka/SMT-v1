@@ -58,7 +58,7 @@ public class RectZone extends Zone{
 	 * certain colour drawn overtop of its contents.
 	 */
 	boolean colFilter = false;
-	Color filterColor = new Color(110, 110, 110, 55);
+	Color filterColor = new Color(110, 110, 110, 200);
 	
 	
 	
