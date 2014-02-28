@@ -1418,7 +1418,7 @@ public class Zone extends ZoneAnimator {
 	 *            information
 	 */
 	public void rotateEvent(RotateEvent e) {
-		if (isRotatable()) {
+		if (isRotatable() || isRNTable()) {
 			TuioCursor cursor = TouchClient.getTouch(e.getCursors()[0]);
 			this.matrix.translate(e.getXPofRotation(), e.getYPofRotation());
 			this.matrix.rotate(e.getAngle());
