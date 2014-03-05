@@ -146,7 +146,7 @@ public class GestureHandler {
 		// /////////////////////////////////////////////////////////////
 		// Two-finger gesture -- Rotate and Pinch Gesture (Scalable)
 		// ////////////////////////////////////////////////////////////
-		if (zone.getCurrentTouches() >= 2) {
+		if (zone.getCurrentTouches() == 2) {
 			zone.setRNTing(false);
 			for (TuioCursor tcur2 : zone.getTuioCursorList()) {
 				if (tcur2 != null && tcur.getSessionID() != tcur2.getSessionID()) {
