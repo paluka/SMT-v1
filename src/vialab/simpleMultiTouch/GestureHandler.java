@@ -141,14 +141,17 @@ public class GestureHandler {
 	 * @param yIn
 	 *            int - The y-coordinate of the TuioCursor
 	 */
-	/*void detectOnUpdate(Zone zone, TuioCursor tcur, int xIn, int yIn) {
+	void detectOnUpdate(Zone zone, TuioCursor tcur, int xIn, int yIn) {
 		long[] cursor = new long[1];
 		cursor[0] = tcur.getSessionID();
 
 		// /////////////////////////////////////////////////////////////
 		// Two-finger gesture -- Rotate and Pinch Gesture (Scalable)
 		// ////////////////////////////////////////////////////////////
-		if (zone.getCurrentTouches() == 2) {
+		/////////////////////////////////////////////////
+		////////// Use rst instead
+		////////////////////////////////////////////////
+		/*if (zone.getCurrentTouches() == 2) {
 			zone.setRNTing(false);
 			for (TuioCursor tcur2 : zone.getTuioCursorList()) {
 				if (tcur2 != null && tcur.getSessionID() != tcur2.getSessionID()) {
@@ -198,8 +201,9 @@ public class GestureHandler {
 					return;
 				}
 			}
-		}
+		}*/
 
+		rst(zone, tcur);
 		// ////////////////
 		// RNT Gesture
 		// Drag and X/Y Drag Gesture
@@ -230,7 +234,7 @@ public class GestureHandler {
 			detectTapAndHold(zone, xIn, yIn, cursor);
 		}
 	}
-*/
+
 	
 	public int compare(TuioTime timeA, TuioTime timeB) {
 		Long timeALong = new Long(timeA.getSeconds());
@@ -245,7 +249,7 @@ public class GestureHandler {
 		return timeALong.compareTo(timeB.getMicroseconds());
 	}
 	
-	void detectOnUpdate(Zone zone, TuioCursor tcur, int xIn, int yIn) {
+	private void rst(Zone zone, TuioCursor tcur) {
 		if(zone.getTouchCount() >= 2) {
 			TuioCursor touch1 = zone.getTuioCursorList().get(0);
 			TuioCursor touch2 = zone.getTuioCursorList().get(1);
@@ -332,54 +336,6 @@ public class GestureHandler {
 		} else {
 			zone.lastUpdate = tcur.getTuioTime();
 		}
-		/*
-		 * for (TuioCursor tcur2 : zone.getTuioCursorList()) {
-				if (tcur2 != null && tcur.getSessionID() != tcur2.getSessionID()) {
-
-					long[] cursors = new long[2];
-					cursors[0] = tcur.getSessionID();
-					cursors[1] = tcur2.getSessionID();
-
-					int[] iLast = new int[2];
-					iLast[0] = tcur2.getPath().lastElement().getScreenX(TouchClient.pApplet.width);
-					iLast[1] = tcur2.getPath().lastElement().getScreenY(TouchClient.pApplet.height);
-
-					int midX = (xIn + iLast[0]) / 2;
-					int midY = (yIn + iLast[1]) / 2; // Center of pinch and
-					// rotate gesture
-
-					zone.contains(midX, midY); // Get midX and midY in the
-					// zone's matrix space
-					// The values will be in the variables localX and localY
-
-					// Reset the lastLocal values when first starting the
-					// gestures.
-					if (!zone.getRotating() && !zone.getPinching()) {
-						zone.setLastLocalX(zone.getLocalX());
-						zone.setLastLocalY(zone.getLocalY());
-						zone.setAngle(0);
-					}
-					// When the centre point between the fingers moves,
-					// translate that amount
-					if (zone.getCurrentTouches() == 2) {
-						fireDragEvent(midX, midY, cursors, zone.getLocalX() - zone.getLastLocalX(),
-								zone.getLocalY() - zone.getLastLocalY(), zone);
-					}
-
-					// ///////////////////
-					// Pinching Gesture
-					// //////////////////
-					if (zone.isPinchable() || zone.isXYPinchable() || zone.isXPinchable() || zone.isYPinchable()) {
-						detectPinch(zone, xIn, yIn, cursors);
-					}
-					// ////////////////
-					// Rotate Gesture
-					// ////////////////
-					if (zone.isRotatable()) {
-						detectRotate(zone, xIn, yIn, cursors);
-					}
-					return;
-		 */
 	}
 	
 	/**
