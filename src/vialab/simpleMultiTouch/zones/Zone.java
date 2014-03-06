@@ -986,7 +986,7 @@ public class Zone extends ZoneAnimator {
 	public void reset() {
 		releaseTime = applet.millis();
 		currentTouchIDs.clear();
-
+		lastUpdate = TuioTime.getSessionTime();
 		//localX = 0;
 		//localY = 0;
 		//lastLocalX = 0;

@@ -277,7 +277,7 @@ public class GestureHandler {
 				}
 			}
 			
-			if (zone.isDraggable() || zone.isXDraggable() || zone.isYDraggable()) {
+			/*if (zone.isDraggable() || zone.isXDraggable() || zone.isYDraggable()) {
 				if (zone.isXDraggable() || zone.isDraggable()) {
 					zone.getMatrix().translate(toPoint1.getX(), 0);
 				}
@@ -285,9 +285,9 @@ public class GestureHandler {
 					zone.getMatrix().translate(0, toPoint1.getY());
 				}
 			}
-			else {
+			else {*/
 				zone.getMatrix().translate((zone.getX() + zone.getWidth() / 2), (zone.getY() + zone.getHeight() / 2));
-			}
+			//}
 			
 			if(fromPoint1 != null && fromPoint2 != null && (zone.isRotatable() || zone.isPinchable())) {
 				PVector fromVec = new PVector(fromPoint2.getX(), fromPoint2.getY());
@@ -315,7 +315,7 @@ public class GestureHandler {
 				}
 			}
 			
-			if (zone.isDraggable() || zone.isXDraggable() || zone.isYDraggable()) {
+			/*if (zone.isDraggable() || zone.isXDraggable() || zone.isYDraggable()) {
 				if (zone.isXDraggable() || zone.isDraggable()) {
 					zone.getMatrix().translate(-fromPoint1.getX(), 0);
 				}
@@ -323,9 +323,9 @@ public class GestureHandler {
 					zone.getMatrix().translate(0, -fromPoint1.getY());
 				}
 			}
-			else {
+			else {*/
 				zone.getMatrix().translate(-(zone.getX() + zone.getWidth() / 2), -(zone.getY() + zone.getHeight() / 2));
-			}
+			//}
 
 			
 			if(touch1.getTuioTime().getMicroseconds() > touch2.getTuioTime().getMicroseconds()) {
