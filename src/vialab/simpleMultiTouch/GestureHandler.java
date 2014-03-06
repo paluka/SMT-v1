@@ -23,9 +23,11 @@ package vialab.simpleMultiTouch;
 import java.awt.Point;
 import java.awt.geom.Point2D;
 import java.lang.reflect.Method;
+import java.util.Collections;
 import java.util.Vector;
 
 import processing.core.PApplet;
+import processing.core.PVector;
 import vialab.simpleMultiTouch.events.DragEvent;
 import vialab.simpleMultiTouch.events.HSwipeEvent;
 import vialab.simpleMultiTouch.events.PinchEvent;
@@ -139,7 +141,7 @@ public class GestureHandler {
 	 * @param yIn
 	 *            int - The y-coordinate of the TuioCursor
 	 */
-	void detectOnUpdate(Zone zone, TuioCursor tcur, int xIn, int yIn) {
+	/*void detectOnUpdate(Zone zone, TuioCursor tcur, int xIn, int yIn) {
 		long[] cursor = new long[1];
 		cursor[0] = tcur.getSessionID();
 
@@ -228,7 +230,127 @@ public class GestureHandler {
 			detectTapAndHold(zone, xIn, yIn, cursor);
 		}
 	}
+*/
+	
+	public int compare(TuioTime timeA, TuioTime timeB) {
+		Long timeALong = new Long(timeA.getSeconds());
+		int temp = timeALong.compareTo(timeB.getSeconds());
+		// int temp = Long.compare(timeA.getSeconds(), timeB.getSeconds());
+		if (temp != 0) {
+			return temp;
+		}
+		timeALong = new Long(timeA.getMicroseconds());
+		// return Long.compare(timeA.getMicroseconds(),
+		// timeB.getMicroseconds());
+		return timeALong.compareTo(timeB.getMicroseconds());
+	}
+	
+	void detectOnUpdate(Zone zone, TuioCursor tcur, int xIn, int yIn) {
+		if(zone.getTouchCount() >= 2) {
+			TuioCursor touch1 = zone.getTuioCursorList().get(0);
+			TuioCursor touch2 = zone.getTuioCursorList().get(1);
+			TuioPoint toPoint1 = touch1.getPath().get(touch1.getPath().size()-1);
+			TuioPoint toPoint2 = touch2.getPath().get(touch1.getPath().size()-1);
+			TuioPoint fromPoint1 = null;
+			TuioPoint fromPoint2 = null;
+			
+			Vector<TuioPoint> path = new Vector<TuioPoint>(touch1.getPath());
+			Collections.reverse(path);
+			
+			for(TuioPoint p: path) {
+				if(compare(p.getTuioTime(), zone.lastUpdate) <= 0) {
+					fromPoint1 = p;
+					break;
+				}
+			}
+			
+			path = new Vector<TuioPoint>(touch2.getPath());
+			Collections.reverse(path);
+			for(TuioPoint p: path) {
+				if(compare(p.getTuioTime(), zone.lastUpdate) <= 0) {
+					fromPoint2 = p;
+					break;
+				}
+			}
+			
+			if( fromPoint1 != null && fromPoint2 != null) {
+				PVector fromVec = new PVector(fromPoint2.getX(), fromPoint2.getY());
+				fromVec.sub(new PVector(fromPoint1.getX(), fromPoint1.getY()));
+				
+				PVector toVec = new PVector(toPoint2.getX(), toPoint2.getY());
+				toVec.sub(new PVector(toPoint1.getX(), toPoint1.getY()));
+				
+				float toDist = toVec.mag();
+				float fromDist = fromVec.mag();
+				
+				if (toDist > 0 && fromDist > 0) {
+					float angle = PVector.angleBetween(fromVec, toVec);
+					//PVector cross = PVector.cross(fromVec, toVec, new PVector());
+					//cross.normalize();
+	
+					if (angle != 0) { //&& cross.z != 0 && rotate) {
+						zone.rotate(angle/2);//, cross.x, cross.y, cross.z);
+					}
+				}
+			}
+			if(touch1.getTuioTime().getMicroseconds() > touch2.getTuioTime().getMicroseconds()) {
+				zone.lastUpdate = touch1.getTuioTime();
+			} else {
+				zone.lastUpdate = touch2.getTuioTime();
+			}
+		} else {
+			zone.lastUpdate = tcur.getTuioTime();
+		}
+		/*
+		 * for (TuioCursor tcur2 : zone.getTuioCursorList()) {
+				if (tcur2 != null && tcur.getSessionID() != tcur2.getSessionID()) {
 
+					long[] cursors = new long[2];
+					cursors[0] = tcur.getSessionID();
+					cursors[1] = tcur2.getSessionID();
+
+					int[] iLast = new int[2];
+					iLast[0] = tcur2.getPath().lastElement().getScreenX(TouchClient.pApplet.width);
+					iLast[1] = tcur2.getPath().lastElement().getScreenY(TouchClient.pApplet.height);
+
+					int midX = (xIn + iLast[0]) / 2;
+					int midY = (yIn + iLast[1]) / 2; // Center of pinch and
+					// rotate gesture
+
+					zone.contains(midX, midY); // Get midX and midY in the
+					// zone's matrix space
+					// The values will be in the variables localX and localY
+
+					// Reset the lastLocal values when first starting the
+					// gestures.
+					if (!zone.getRotating() && !zone.getPinching()) {
+						zone.setLastLocalX(zone.getLocalX());
+						zone.setLastLocalY(zone.getLocalY());
+						zone.setAngle(0);
+					}
+					// When the centre point between the fingers moves,
+					// translate that amount
+					if (zone.getCurrentTouches() == 2) {
+						fireDragEvent(midX, midY, cursors, zone.getLocalX() - zone.getLastLocalX(),
+								zone.getLocalY() - zone.getLastLocalY(), zone);
+					}
+
+					// ///////////////////
+					// Pinching Gesture
+					// //////////////////
+					if (zone.isPinchable() || zone.isXYPinchable() || zone.isXPinchable() || zone.isYPinchable()) {
+						detectPinch(zone, xIn, yIn, cursors);
+					}
+					// ////////////////
+					// Rotate Gesture
+					// ////////////////
+					if (zone.isRotatable()) {
+						detectRotate(zone, xIn, yIn, cursors);
+					}
+					return;
+		 */
+	}
+	
 	/**
 	 * Detects a rotate gesture and fires the corresponding event if it has
 	 * occurred.
