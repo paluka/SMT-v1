@@ -42,6 +42,7 @@ import vialab.simpleMultiTouch.events.TapAndHoldEvent;
 import vialab.simpleMultiTouch.events.TapEvent;
 import vialab.simpleMultiTouch.events.VSwipeEvent;
 import TUIO.TuioCursor;
+import TUIO.TuioTime;
 
 /**
  * This is the main zone class which RectZone and ImageZone extend. It holds the
@@ -78,6 +79,8 @@ public class Zone extends ZoneAnimator {
 	/** The zone's inverse transformation matrix */
 	private PMatrix3D inverse = new PMatrix3D();
 
+	public TuioTime lastUpdate = TuioTime.getSessionTime();
+	
 	private long lastTouchDown = -1;
 
 	private long lastTouchUp = -1;
