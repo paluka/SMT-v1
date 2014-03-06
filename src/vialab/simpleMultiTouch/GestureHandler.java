@@ -250,7 +250,7 @@ public class GestureHandler {
 			TuioCursor touch1 = zone.getTuioCursorList().get(0);
 			TuioCursor touch2 = zone.getTuioCursorList().get(1);
 			TuioPoint toPoint1 = touch1.getPath().get(touch1.getPath().size()-1);
-			TuioPoint toPoint2 = touch2.getPath().get(touch1.getPath().size()-1);
+			TuioPoint toPoint2 = touch2.getPath().get(touch2.getPath().size()-1);
 			TuioPoint fromPoint1 = null;
 			TuioPoint fromPoint2 = null;
 			
@@ -273,7 +273,19 @@ public class GestureHandler {
 				}
 			}
 			
-			if( fromPoint1 != null && fromPoint2 != null) {
+			if (zone.isDraggable() || zone.isXDraggable() || zone.isYDraggable()) {
+				if (zone.isXDraggable() || zone.isDraggable()) {
+					zone.getMatrix().translate(toPoint1.getX(), 0);
+				}
+				if (zone.isYDraggable() || zone.isDraggable()) {
+					zone.getMatrix().translate(0, toPoint1.getY());
+				}
+			}
+			else {
+				zone.getMatrix().translate((zone.getX() + zone.getWidth() / 2), (zone.getY() + zone.getHeight() / 2));
+			}
+			
+			if(fromPoint1 != null && fromPoint2 != null && (zone.isRotatable() || zone.isPinchable())) {
 				PVector fromVec = new PVector(fromPoint2.getX(), fromPoint2.getY());
 				fromVec.sub(new PVector(fromPoint1.getX(), fromPoint1.getY()));
 				
@@ -285,14 +297,33 @@ public class GestureHandler {
 				
 				if (toDist > 0 && fromDist > 0) {
 					float angle = PVector.angleBetween(fromVec, toVec);
-					//PVector cross = PVector.cross(fromVec, toVec, new PVector());
-					//cross.normalize();
+					PVector cross = PVector.cross(fromVec, toVec, new PVector());
+					cross.normalize();
 	
-					if (angle != 0) { //&& cross.z != 0 && rotate) {
-						zone.rotate(angle/2);//, cross.x, cross.y, cross.z);
+					if (!Float.isNaN(angle) && angle != 0 && cross.z != 0 && zone.isRotatable()) {
+						zone.getMatrix().rotate(angle, cross.x, cross.y, cross.z);
+					}
+					
+					if (zone.isPinchable()) {
+						float ratio = toDist / fromDist;
+						zone.getMatrix().scale(ratio);
 					}
 				}
 			}
+			
+			if (zone.isDraggable() || zone.isXDraggable() || zone.isYDraggable()) {
+				if (zone.isXDraggable() || zone.isDraggable()) {
+					zone.getMatrix().translate(-fromPoint1.getX(), 0);
+				}
+				if (zone.isYDraggable() || zone.isDraggable()) {
+					zone.getMatrix().translate(0, -fromPoint1.getY());
+				}
+			}
+			else {
+				zone.getMatrix().translate(-(zone.getX() + zone.getWidth() / 2), -(zone.getY() + zone.getHeight() / 2));
+			}
+
+			
 			if(touch1.getTuioTime().getMicroseconds() > touch2.getTuioTime().getMicroseconds()) {
 				zone.lastUpdate = touch1.getTuioTime();
 			} else {
