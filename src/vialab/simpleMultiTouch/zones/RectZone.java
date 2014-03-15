@@ -224,7 +224,7 @@ public class RectZone extends Zone{
 		if(shadow){
 			TouchClient.getPApplet().stroke(shadowColour.getRed(), shadowColour.getGreen(), shadowColour.getBlue(), shadowColour.getAlpha());
 			TouchClient.getPApplet().strokeWeight(1);
-			applet.fill(shadowColour.getRed(), shadowColour.getGreen(), shadowColour.getBlue());
+			applet.fill(shadowColour.getRed(), shadowColour.getGreen(), shadowColour.getBlue(), shadowColour.getAlpha());
 			if(rounded){
 				roundedRect(x + xShadow, y + yShadow, width + wShadow, height + hShadow, r);
 			} else {
