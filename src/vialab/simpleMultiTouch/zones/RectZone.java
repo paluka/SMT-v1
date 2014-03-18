@@ -129,7 +129,7 @@ public class RectZone extends Zone{
 	 * @param b
 	 * @param a
 	 */
-	public void setFilColor(int r, int g, int b, int a){
+	public void setFilterColor(int r, int g, int b, int a){
 		filterColor = new Color(r, g, b, a);
 	}
 	
@@ -172,6 +172,11 @@ public class RectZone extends Zone{
 	public void setColour(int r, int g, int b){
 		fill = true;
 		super.setColour(new Color(r, g, b));
+	}
+	
+	public void setColour(int r, int g, int b, int a){
+		fill = true;
+		super.setColour(new Color(r, g, b, a));
 	}
 	
 	

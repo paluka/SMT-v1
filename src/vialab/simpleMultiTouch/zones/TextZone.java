@@ -14,8 +14,8 @@ public class TextZone extends RectZone{
 	PApplet applet = TouchClient.getPApplet();
 	int xAlign = -1;
 	int yAlign = -1;
-	float yOffset = 0;
-	float xOffset = 0;
+	public float yOffset = 0;
+	public float xOffset = 0;
 	Color tColour;
 	boolean rounded = false;
 	boolean withinZone = true;
