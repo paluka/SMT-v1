@@ -100,6 +100,8 @@ public class Zone extends ZoneAnimator {
 	protected int borderColour = 0;
 
 	protected int borderWeight = 2;
+	
+	private int tapHoldDuration = 800;
 
 	private boolean draggable = false;
 
@@ -1881,6 +1883,21 @@ public class Zone extends ZoneAnimator {
 
 	public void setTapAndHoldable(boolean tapAndHoldable) {
 		this.tapAndHoldable = tapAndHoldable;
+	}
+	
+	/**
+	 *  Set the tap and hold duration in milliseconds
+	 * @param duration
+	 */
+	public void setHoldDurationMilli(int duration) {
+		tapHoldDuration = duration;
+	}
+	
+	/**
+	 *  Get the tap and hold duration in milliseconds
+	 */
+	public int getHoldDurationMilli() {
+		return tapHoldDuration;
 	}
 
 	public boolean isRNTable() {

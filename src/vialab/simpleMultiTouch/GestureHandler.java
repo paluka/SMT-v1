@@ -718,9 +718,9 @@ public class GestureHandler {
 		Vector<TuioPoint> path = tcur.getPath();
 		long time = tcur.getStartTime().getTotalMilliseconds();
 
-		if (TuioTime.getSessionTime().getTotalMilliseconds() - time > 800
-				&& (path.firstElement().getX() - path.lastElement().getX() < 0.05 || path
-						.firstElement().getY() - path.lastElement().getY() < 0.05)) {
+		if (TuioTime.getSessionTime().getTotalMilliseconds() - time > zone.getHoldDurationMilli()
+				&& (Math.abs(path.firstElement().getX() - path.lastElement().getX()) < 0.005 && Math.abs(path
+						.firstElement().getY() - path.lastElement().getY()) < 0.005)) {
 			fireTapAndHoldEvent(xIn, yIn, cursor, time, zone);
 		}
 
