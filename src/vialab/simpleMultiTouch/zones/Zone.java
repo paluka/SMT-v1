@@ -208,6 +208,7 @@ public class Zone extends ZoneAnimator {
 	protected float height;
 
 	protected float width;
+	// Set the interaction space of the zone with xThresh and yThresh
 	protected float xThresh = 0;
 	protected float yThresh = 0;
 
@@ -249,7 +250,12 @@ public class Zone extends ZoneAnimator {
 		return s;
 	}
 	
-	public void setThresholdTouch(float x, float y){
+	/**
+	 * Set the interaction space of the zone with xThresh and yThresh
+	 * @param x
+	 * @param y
+	 */
+	public void setInteractionOffset(float x, float y){
 		this.xThresh = x;
 		this.yThresh = y;
 	}
